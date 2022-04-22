@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package kubegames_types;
+
+option go_package = "github.com/kubegames/kubegames-operator/app/game/types"; 
+
+import "app/lib/gogo/protobuf/gogo.proto";
+
+option (gogoproto.gostring_all) = true;  
+option (gogoproto.equal_all) = true;  
+option (gogoproto.verbose_equal_all) = true;  
+option (gogoproto.marshaler_all) = true;  
+option (gogoproto.sizer_all) = true;  
+option (gogoproto.unmarshaler_all) = true;  
+option (gogoproto.goproto_getters_all) = false;
+
+message DeleteRequest {
+	//game id
+	string gameID = 1 [(gogoproto.moretags) = "uri:\"gameID\" binding:\"required\""];
+}
+
+message DeleteResponse {
+	//success
+	bool success = 1;
+}

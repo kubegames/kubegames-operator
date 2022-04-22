@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubegames-operator
+  namespace: default
+  labels:
+    app: kubegames-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubegames-operator
+  template:
+    metadata:
+      labels:
+        app: kubegames-operator
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1234
+      containers:
+      - name: server
+        image: kubegames/kubegames-operator:latest
+        imagePullPolicy: IfNotPresent
+        command:
+        - "bin/sh"
+        - "-c"
+        - "./kubegames-operator -k=/home/kube.config"
+        ports:
+        - containerPort: 443
+          name: operator-api
+        volumeMounts:
+        - name: kubegames-operator-tls
+          mountPath: /run/secrets/tls
+          readOnly: true
+        - mountPath: /home/kube.config
+          name: k8s-client-config
+          subPath: kube.config
+      volumes:
+      - name: kubegames-operator-tls
+        secret:
+          secretName: kubegames-operator-tls
+      - configMap:
+          defaultMode: 420
+          name: k8s-client-config
+        name: k8s-client-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubegames-operator
+  namespace: default
+spec:
+  selector:
+    app: kubegames-operator
+  ports:
+    - port: 443
+      targetPort: operator-api
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: kubegames-operator
+webhooks:
+  - name: kubegames-operator.default.svc
+    sideEffects: None
+    admissionReviewVersions: ["v1", "v1beta1"]
+    clientConfig:
+      service:
+        name: kubegames-operator
+        namespace: default
+        path: "/validating"
+      caBundle: ${CA_PEM_B64}
+    rules:
+      - operations: [ "*" ]
+        apiGroups: ["kubegames.com"]
+        apiVersions: ["v1"]
+        resources: ["games"]
+
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: kubegames-operator
+webhooks:
+  - name: kubegames-operator.default.svc
+    sideEffects: None
+    admissionReviewVersions: ["v1", "v1beta1"]
+    clientConfig:
+      service:
+        name: kubegames-operator
+        namespace: default
+        path: "/mutating"
+      caBundle: ${CA_PEM_B64}
+    rules:
+      - operations: [ "*" ]
+        apiGroups: ["kubegames.com"]
+        apiVersions: ["v1"]
+        resources: ["games"]

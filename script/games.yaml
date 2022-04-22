@@ -1,0 +1,11 @@
+apiVersion: kubegames.com/v1
+kind: Game
+metadata:
+  name: bqtp
+  namespace: games
+spec:
+  gameID: "90001"
+  image: "kubegames/bqtp:latest"
+  port: 8433
+  config: "eyJzZXJ2ZXJOYW1lIjoi5Yaw55CD56qB56C0IiwiZ2FtZUlEIjoiOTAwMDEiLCJoYWxsIjoiaGFsbC5oYWxsOjg0MzMiLCJtYXhQZW9wbGUiOjEwMDAwLCJyZWRpcyI6W10sInJvYm90IjpbXSwicnVubW9kZSI6ImRldiJ9"
+  replicas: 1
